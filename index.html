@@ -84,7 +84,7 @@
   <div id="net"></div>
   <aside id="side">
     <h2>Selection</h2>
-    <p class="meta">An arrow means depends on. The medium is what crosses that edge. Project folds every internal node of a tool into one node. Group folds <code>linc.calibrator.pa</code> to <code>linc.calibrator</code>. Code shows every id. External nodes stay <code>ext.*</code>.</p>
+    <p class="meta">An arrow means depends on. The medium is what crosses that edge. Project uses one node per tool: <code>wsclean</code> and <code>ext.wsclean</code> are the same node, and the <code>ext.</code> prefix is dropped. Group folds <code>linc.calibrator.pa</code> to <code>linc.calibrator</code> and keeps <code>ext.*</code>. Code shows every id.</p>
     <pre id="detail">nothing selected</pre>
   </aside>
 </div>
@@ -115,10 +115,13 @@ function fillContexts() {
 }
 
 function foldKey(id, level) {
-  if (id.startsWith("ext.")) return id;
   if (level === "code") return id;
+  if (level === "project") {
+    if (id.startsWith("ext.")) return id.slice(4);
+    return id.split(".")[0];
+  }
+  if (id.startsWith("ext.")) return id;
   const parts = id.split(".");
-  if (level === "project") return parts[0];
   if (parts.length >= 2) return parts[0] + "." + parts[1];
   return id;
 }
@@ -219,8 +222,8 @@ function visible() {
     if (!groups[id]) {
       groups[id] = {
         id: id,
-        kind: id.startsWith("ext.") ? "external" : "internal",
-        name: id.startsWith("ext.") ? (n.name || id) : id,
+        kind: n.kind,
+        name: id,
         summary: n.summary || "",
         summaries: [],
         catalog_ids: [],
@@ -230,6 +233,7 @@ function visible() {
       };
     }
     const g = groups[id];
+    if (n.kind === "internal") g.kind = "internal";
     g.members.push(n.id);
     if (n.summary && n.summary !== g.summary && g.summaries.indexOf(n.summary) < 0) g.summaries.push(n.summary);
     (n.catalog_ids || []).forEach(c => { if (g.catalog_ids.indexOf(c) < 0) g.catalog_ids.push(c); });

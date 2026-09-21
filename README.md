@@ -6,7 +6,7 @@ Directed graph of the Terpkit block notes. An arrow means **depends on**. The te
 
 Three stops:
 
-- **Project.** One node per tool. Shared libraries stay `ext.*` and do not fold into a tool.
+- **Project.** One node per tool. `wsclean` and `ext.wsclean` are the same node, and the `ext.` prefix is dropped. A library that has no graph of its own stays a gold node, named without that prefix.
 - **Group.** `linc.calibrator.pa` folds to `linc.calibrator`. External nodes stay put.
 - **Code.** Every id, as written in the block graph.
 
