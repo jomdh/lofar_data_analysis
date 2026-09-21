@@ -1,7 +1,15 @@
-# LOFAR CWL I/O graph
+# Relation map
 
-Interactive directed graph of public LOFAR CWL workflows: each arrow is an input/output link, weight is how often that same link appears, and each link records which pipelines mention it.
+Directed graph of the Terpkit block notes. An arrow means **depends on**. The text on a link is the medium that crosses it: a Measurement Set, an h5parm, FITS, a parset, or a command.
 
-**Open in a browser:** https://jomdh.github.io/lofar_data_analysis/
+**Open:** https://jomdh.github.io/lofar_data_analysis/
 
-Blue = pipeline starts, green = ends. Collapse `Module.sub` (e.g. LoSoTo.*) into one node. Node size can follow in/out/both/closeness/betweenness.
+Three stops:
+
+- **Project.** One node per tool. Shared libraries stay `ext.*` and do not fold into a tool.
+- **Group.** `linc.calibrator.pa` folds to `linc.calibrator`. External nodes stay put.
+- **Code.** Every id, as written in the block graph.
+
+Blue nodes are inside a tool. Gold nodes are external. Click a folded node to list the ids it contains.
+
+The source graphs are the `blocks/<tool>/graph.json` files in the terpkit tree.
