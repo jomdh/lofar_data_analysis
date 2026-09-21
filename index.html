@@ -40,8 +40,8 @@
   #side h2 { font-size:.95rem; margin:.2rem 0 .4rem; }
   #detail { white-space:pre-wrap; word-break:break-word; font:12px/1.4 ui-monospace, monospace; }
   .meta { color:var(--muted); font-size:.8rem; }
-  #contexts { display:flex; flex-wrap:wrap; gap:.25rem .6rem; }
-  #contexts label { font-size:.78rem; color:var(--muted); }
+  #contexts { display:flex; flex-direction:column; gap:.2rem; margin:0 0 1rem; }
+  #contexts label { font-size:.85rem; color:var(--text); }
   #tip {
     display:none; position:fixed; z-index:20; pointer-events:none;
     background:#1c2129; border:1px solid var(--border); color:var(--text);
@@ -71,7 +71,6 @@
     </select>
   </label>
   <label class="meta"><input id="thick" type="checkbox" checked> thicker links by weight</label>
-  <label class="meta"><input id="overlap" type="checkbox"> allow overlapping</label>
   <button type="button" id="fit">Fit</button>
   <span class="legend">
     <span><i class="dot" style="background:var(--internal)"></i> internal</span>
@@ -79,10 +78,11 @@
   </span>
   <span class="meta" id="stats"></span>
 </header>
-<div id="contexts"></div>
 <div id="layout">
   <div id="net"></div>
   <aside id="side">
+    <h2>Apps</h2>
+    <div id="contexts"></div>
     <h2>Selection</h2>
     <p class="meta">An arrow means depends on. The medium is what crosses that edge. Project uses one node per tool: <code>wsclean</code> and <code>ext.wsclean</code> are the same node, and the <code>ext.</code> prefix is dropped. Group folds <code>linc.calibrator.pa</code> to <code>linc.calibrator</code> and keeps <code>ext.*</code>. Code shows every id.</p>
     <pre id="detail">nothing selected</pre>
@@ -328,7 +328,7 @@ function draw() {
       physics: {
         enabled: true,
         solver: "forceAtlas2Based",
-        forceAtlas2Based: { gravitationalConstant: -50, springLength: 110, springConstant: 0.05, avoidOverlap: 1 },
+        forceAtlas2Based: { gravitationalConstant: -50, springLength: 110, springConstant: 0.05 },
         stabilization: { iterations: 150 },
       },
       interaction: { hover: true, tooltipDelay: 80, navigationButtons: true, keyboard: true },
@@ -398,13 +398,6 @@ document.getElementById("minw").addEventListener("input", draw);
 document.getElementById("level").addEventListener("change", draw);
 document.getElementById("sizeby").addEventListener("change", draw);
 document.getElementById("thick").addEventListener("change", draw);
-document.getElementById("overlap").addEventListener("change", () => {
-  const allow = document.getElementById("overlap").checked;
-  network.setOptions({
-    physics: { forceAtlas2Based: { avoidOverlap: allow ? 0 : 1 } },
-  });
-  network.stabilize();
-});
 document.getElementById("fit").onclick = () => network.fit();
 fillContexts();
 draw();
