@@ -71,7 +71,7 @@
     </select>
   </label>
   <label class="meta"><input id="thick" type="checkbox" checked> thicker links by weight</label>
-  <button type="button" id="physics">Physics off</button>
+  <label class="meta"><input id="overlap" type="checkbox"> allow overlapping</label>
   <button type="button" id="fit">Fit</button>
   <span class="legend">
     <span><i class="dot" style="background:var(--internal)"></i> internal</span>
@@ -328,7 +328,7 @@ function draw() {
       physics: {
         enabled: true,
         solver: "forceAtlas2Based",
-        forceAtlas2Based: { gravitationalConstant: -50, springLength: 110, springConstant: 0.05 },
+        forceAtlas2Based: { gravitationalConstant: -50, springLength: 110, springConstant: 0.05, avoidOverlap: 1 },
         stabilization: { iterations: 150 },
       },
       interaction: { hover: true, tooltipDelay: 80, navigationButtons: true, keyboard: true },
@@ -398,12 +398,13 @@ document.getElementById("minw").addEventListener("input", draw);
 document.getElementById("level").addEventListener("change", draw);
 document.getElementById("sizeby").addEventListener("change", draw);
 document.getElementById("thick").addEventListener("change", draw);
-let phys = true;
-document.getElementById("physics").onclick = () => {
-  phys = !phys;
-  network.setOptions({ physics: { enabled: phys } });
-  document.getElementById("physics").textContent = phys ? "Physics off" : "Physics on";
-};
+document.getElementById("overlap").addEventListener("change", () => {
+  const allow = document.getElementById("overlap").checked;
+  network.setOptions({
+    physics: { forceAtlas2Based: { avoidOverlap: allow ? 0 : 1 } },
+  });
+  network.stabilize();
+});
 document.getElementById("fit").onclick = () => network.fit();
 fillContexts();
 draw();
