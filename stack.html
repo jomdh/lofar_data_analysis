@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software stack × stage</title>
+<link rel="stylesheet" href="watermark.css">
+<style>
+  :root {
+    --bg:#0e1117; --panel:#161b22; --border:#30363d; --text:#e6edf3;
+    --muted:#8b949e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--text);
+    font:14px/1.4 ui-sans-serif, system-ui, sans-serif; }
+  body { display:flex; flex-direction:column; }
+  header { flex:0 0 auto; padding:.7rem 1rem; border-bottom:1px solid var(--border);
+    display:flex; flex-wrap:wrap; gap:.55rem 1rem; align-items:center; }
+  h1 { font-size:1rem; margin:0; }
+  a { color:#79c0ff; text-decoration:none; }
+  .swatch { display:inline-block; width:.7rem; height:.7rem; border-radius:2px;
+    margin-right:.25rem; vertical-align:-1px; }
+  .swatch.pale { opacity:.45; }
+  .swatch.rail { background:transparent !important; box-shadow:inset 0 0 0 2px #8b949e; }
+  #layout { display:flex; flex:1; min-height:0; }
+  .board { flex:1; overflow:auto; padding:1rem 1rem 2rem; min-width:0; }
+  #side { width:16rem; max-width:16rem; flex:0 0 16rem; overflow:auto;
+    border-left:1px solid var(--border); padding:.55rem .7rem 1.4rem; background:var(--panel); }
+  #side.shut { width:0; max-width:0; flex-basis:0; padding:0; border:0; overflow:hidden; }
+  .sidehead { display:flex; align-items:center; justify-content:space-between; gap:.4rem; }
+  #side h2 { font-size:.85rem; margin:.1rem 0 .35rem; }
+  #shut { background:transparent; color:var(--muted); border:1px solid var(--border);
+    border-radius:4px; cursor:pointer; font:13px/1 system-ui, sans-serif; padding:.15rem .4rem; }
+  #detail { white-space:pre-wrap; word-break:break-word;
+    font:12px/1.45 ui-monospace, monospace; margin:0; }
+  table { border-collapse:separate; border-spacing:0 0; min-width:1480px; width:100%; }
+  thead th { position:sticky; top:0; z-index:2; background:var(--bg);
+    color:var(--muted); font-size:.72rem; font-weight:600; text-align:left;
+    vertical-align:bottom; padding:0 .35rem .6rem; }
+  thead tr.names th { top:1.7rem; }
+  th.band { width:4.6rem; color:var(--muted); font-size:.68rem; letter-spacing:.04em;
+    text-transform:uppercase; text-align:left; vertical-align:top; padding-top:.55rem; }
+  th.name { width:9.2rem; text-align:left; vertical-align:middle; padding:.15rem .6rem .15rem 0; }
+  th.band, th.name { position:sticky; background:var(--bg); }
+  th.band { left:0; z-index:1; }
+  th.name { left:4.6rem; z-index:1; }
+  thead th.band, thead th.name { z-index:4; }
+  .prog { display:block; font-weight:650; }
+  .meta { display:block; color:var(--muted); font-size:.72rem; font-weight:500; }
+  td.slot { padding:.28rem 0; vertical-align:middle; }
+  button.bar { display:block; width:100%; height:1.55rem; border:0; padding:0; cursor:pointer; }
+  button.bar.solid { background:var(--c); }
+  button.bar.pale { background:var(--c); opacity:.4; }
+  button.bar.rail { height:1.05rem; background:transparent;
+    box-shadow:inset 0 2px 0 var(--c), inset 0 -2px 0 var(--c); }
+  td.start button.bar.rail { box-shadow:inset 2px 0 0 var(--c), inset 0 2px 0 var(--c), inset 0 -2px 0 var(--c); }
+  td.end button.bar.rail { box-shadow:inset -2px 0 0 var(--c), inset 0 2px 0 var(--c), inset 0 -2px 0 var(--c); }
+  td.start.end button.bar.rail { box-shadow:inset 0 0 0 2px var(--c); }
+  td.start button.bar { border-radius:7px 0 0 7px; margin-left:3px; width:calc(100% - 3px); }
+  td.end button.bar { border-radius:0 7px 7px 0; margin-right:3px; width:calc(100% - 3px); }
+  td.start.end button.bar { border-radius:7px; margin:0 3px; width:calc(100% - 6px); }
+  button.bar.obs { height:1.35rem;
+    background:repeating-linear-gradient(-45deg, rgba(227,179,65,.22) 0 4px, transparent 4px 8px);
+    box-shadow:inset 0 1.5px 0 #e3b341, inset 0 -1.5px 0 #e3b341; }
+  td.start button.bar.obs { box-shadow:inset 1.5px 0 0 #e3b341, inset 0 1.5px 0 #e3b341, inset 0 -1.5px 0 #e3b341; }
+  td.end button.bar.obs { box-shadow:inset -1.5px 0 0 #e3b341, inset 0 1.5px 0 #e3b341, inset 0 -1.5px 0 #e3b341; }
+  td.start.end button.bar.obs { box-shadow:inset 0 0 0 1.5px #e3b341; }
+  td.user { background:rgba(121,192,255,.08); }
+  td.door, th.door { box-shadow:inset 2px 0 0 #79c0ff; }
+  tr.seam th, tr.seam td { box-shadow:inset 0 -2px 0 #e3b341; }
+  tr.seam td.door { box-shadow:inset 2px 0 0 #79c0ff, inset 0 -2px 0 #e3b341; }
+  thead tr.hem th { font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  thead tr.hem th.astro { color:#79c0ff; }
+  button.bar.on { outline:2px solid var(--text); outline-offset:1px; }
+  @media (max-width: 860px) {
+    html, body { height:auto; }
+    #layout { flex-direction:column; }
+    #side { width:auto; max-width:none; flex-basis:auto; max-height:40vh; border-left:0;
+      border-top:1px solid var(--border); }
+    #side.shut { max-height:0; border:0; }
+  }
+  .foot { color:var(--muted); font-size:.8rem; margin:.9rem 0 0; max-width:70rem; }
+</style>
+</head>
+<body>
+<div class="mark" aria-hidden="true"></div>
+<header>
+  <h1>Software stack × stage</h1>
+  <nav class="modes" aria-label="Mode">
+    <a href="stack.html" class="on">stack</a>
+    <a href="index.html">graph</a>
+  </nav>
+  <a href="preview.html">components</a>
+  <a href="gaps.html">concerns</a>
+  <span style="color:var(--muted);font-size:.8rem"><span><i class="swatch" style="background:#f34b7d"></i>C++</span> <span><i class="swatch" style="background:#c5c9d1"></i>C</span> <span><i class="swatch" style="background:#3572A5"></i>Python</span> <span><i class="swatch" style="background:#cb171e"></i>CWL</span> <span><i class="swatch" style="background:#89e051"></i>shell</span> <span><i class="swatch" style="background:#7aa2ff"></i>Lua</span>
+    <i class="swatch pale" style="background:#f34b7d"></i>under the stage
+    <i class="swatch rail"></i>runs or builds
+  </span>
+</header>
+<div id="layout">
+  <div class="board">
+    <table id="grid"></table>
+    <p class="foot">Left of the blue line is the observatory, in three columns: instrument, COBALT, and the LTA. The astronomer picks the Measurement Set up from the LTA. That file is correlated visibilities, and pre-processing is the first thing done with it, so correlation is not a column of its own. The gold line is the bottom of the Python wrappers. Above that, on the right, is the user domain: wrappers, then Python applications, then CWL workflows, then a visual interface. Jupyter notebooks belong in that top band; none are in the gap matrices yet. PyBDSF, spinifex, LiLF, Rapthor, ddf-pipeline, and PILOT are still outside the assessed rows.</p>
+  </div>
+  <aside id="side" class="shut">
+    <div class="sidehead"><h2>Program</h2>
+      <button type="button" id="shut" aria-label="Close">Close</button></div>
+    <pre id="detail"></pre>
+  </aside>
+</div>
+<script>
+const DATA = {"rows": [{"key": "aoflagger-gui", "name": "AOFlagger GUI", "band": "Interface", "kind": "interface", "blurb": "rfigui and aoqplot. A visual interface on the flagger.", "lang": "cpp", "also": [], "segments": [{"start": 3, "modes": ["solid"]}], "parts": [{"id": "aoflagger.gui", "cols": [3], "lang": "C++", "io": "ms, plot", "drift": "concern: rfigui and aoqplot inspect a Measurement Set. They are built only when ENABLE_GUI is on and GTKMM is found", "note": ""}], "seam": false}, {"key": "cwltool", "name": "cwltool", "band": "Workflow", "kind": "run", "blurb": "Runs a workflow on this machine or in a container.", "lang": "python", "also": [], "segments": [{"start": 3, "modes": ["rail", "rail", "rail", "rail", "rail"]}], "parts": [{"id": "cwltool.cli", "cols": [], "lang": "Python", "io": "command, json", "drift": "", "note": "Runs a workflow. Not a box."}, {"id": "cwltool.local", "cols": [], "lang": "Python", "io": "command, directory", "drift": "state: --no-container runs the step on the host PATH. --preserve-environment copies named variables from the caller. LINC's tests pass PATH, PYTHONPATH, and LINC_DATA_ROOT", "note": "Runs a step on this machine. Not a box."}, {"id": "cwltool.container", "cols": [], "lang": "Python", "io": "command", "drift": "copy: Docker, Singularity, Podman, and udocker are four ways to run the same step. The CWL document names a Docker image. The flag selects the runtime", "note": "Runs a step in a container. Not a box."}], "seam": false}, {"key": "toil", "name": "Toil", "band": "Workflow", "kind": "run", "blurb": "Submits each CWL step to a batch system.", "lang": "python", "also": [], "segments": [{"start": 3, "modes": ["rail", "rail", "rail", "rail", "rail"]}], "parts": [{"id": "toil.cwl", "cols": [], "lang": "Python", "io": "command, json", "drift": "contract: the cwltool version this tree pins is newer than the newest cwltool LINC's README allows. The removed command cwltoil only prints that the name is now toil-cwl-runner", "note": "Runs a workflow on a batch system. Not a box."}, {"id": "toil.batch", "cols": [], "lang": "Python", "io": "command, log", "drift": "", "note": "Slurm, Torque, and the other batch names. Not a box."}, {"id": "toil.worker", "cols": [], "lang": "Python", "io": "command, directory", "drift": "", "note": "The process the batch system starts. Not a box."}, {"id": "toil.wdl", "cols": [], "lang": "Python", "io": "command", "drift": "concern: WDL is a second workflow language in the same package", "note": "A second workflow language. Not this flow."}, {"id": "toil.wes", "cols": [], "lang": "Python", "io": "json, log", "drift": "boundary: an HTTP service in front of the CWL runner. Extra server", "note": "An HTTP service in front of the runner. Not a box."}], "seam": false}, {"key": "linc-image", "name": "LINC image", "band": "Workflow", "kind": "ship", "blurb": "One Dockerfile compiles the engines, then installs LINC and Toil.", "lang": "shell", "also": [], "segments": [{"start": 3, "modes": ["rail", "rail", "rail", "rail", "rail"]}], "parts": [{"id": "linc.image", "cols": [], "lang": "shell \u2192 data", "io": "command, directory", "drift": "boundary. knot: one Dockerfile compiles the engines. state: Measures are downloaded into the image at build", "note": "Ships the engines. Does not perform a box."}], "seam": false}, {"key": "linc", "name": "LINC", "band": "Workflow", "kind": "perform", "blurb": "HBA and LBA workflows, from the archived Measurement Set through a science image.", "lang": "cwl", "also": ["lua"], "segments": [{"start": 3, "modes": ["solid", "solid", "solid", "solid", "solid"]}], "parts": [{"id": "linc.entry.hba_calibrator", "cols": [4], "lang": "CWL", "io": "command, ms", "drift": "copy: the calibrator input list exists to set HBA defaults", "note": ""}, {"id": "linc.entry.lba_calibrator", "cols": [4], "lang": "CWL", "io": "command, ms", "drift": "copy: same graph, LBA defaults", "note": ""}, {"id": "linc.entry.hba_target", "cols": [5], "lang": "CWL", "io": "command, ms, h5parm", "drift": "copy: the target input list exists to set HBA defaults", "note": ""}, {"id": "linc.entry.lba_target", "cols": [5, 6], "lang": "CWL", "io": "command, ms, h5parm", "drift": "copy. knot. concern: the defaults turn on LBA selfcal, so this entry also runs image and solutions", "note": ""}, {"id": "linc.entry.hba_target_vlbi", "cols": [5], "lang": "CWL", "io": "command, ms, h5parm", "drift": "copy: HBA target with output_fullres_data defaulting on", "note": ""}, {"id": "linc.entry.ldv_calibrator", "cols": [], "lang": "CWL", "io": "directory", "drift": "boundary. concern: fetch, compress, and ingest live in the scheduling repo", "note": "Archive fetch and ingest. Observatory, not a box."}, {"id": "linc.entry.ldv_target", "cols": [], "lang": "CWL", "io": "directory, h5parm", "drift": "boundary. concern: same archive shell", "note": "Archive fetch and ingest. Observatory, not a box."}, {"id": "linc.calibrator", "cols": [3, 4], "lang": "CWL", "io": "ms, h5parm", "drift": "", "note": ""}, {"id": "linc.target", "cols": [5, 6, 7], "lang": "CWL", "io": "ms, h5parm", "drift": "knot. concern: direction-independent phase, selfcal imaging, and diagnostics are one workflow", "note": ""}, {"id": "linc.calibrator.prep", "cols": [3], "lang": "CWL", "io": "ms, parset, skymodel, lua", "drift": "knot: flag, demix, average, and a skymodel pick. contract: those jobs are a generated DP3 parset. concern: the work is visibility and sky", "note": ""}, {"id": "linc.calibrator.pa", "cols": [4], "lang": "CWL", "io": "h5parm, ms, parset", "drift": "copy: same motif as Faraday, bandpass, and clock. contract: soltab names. concern: the edit is solutions, the solve is visibility", "note": ""}, {"id": "linc.calibrator.fr", "cols": [5], "lang": "CWL", "io": "h5parm, ms, parset", "drift": "copy. contract. concern: same split as polarization alignment", "note": ""}, {"id": "linc.calibrator.bp", "cols": [4], "lang": "CWL", "io": "h5parm, ms, parset", "drift": "copy. contract. concern. state: amplitude transfer defaults to $LINC_DATA_ROOT/solutions/3C48.h5", "note": ""}, {"id": "linc.calibrator.ion", "cols": [4, 5], "lang": "CWL", "io": "h5parm, parset", "drift": "copy. contract: clock and TEC soltabs are LoSoTo names. concern: the split is solutions", "note": ""}, {"id": "linc.target.prep", "cols": [3, 5], "lang": "CWL", "io": "h5parm, ms, parset, skymodel", "drift": "knot: apply, optional demix, RM, skymodel. contract: DP3 parset and spinifex rotation000. concern: visibility, beam, solutions, and sky in one stage", "note": ""}, {"id": "linc.target.gsmcal", "cols": [5], "lang": "CWL", "io": "h5parm, ms, parset, skymodel", "drift": "knot. concern: the phase solve is visibility; dispatching both selfcals pulls in image", "note": ""}, {"id": "linc.target.selfcal_hba", "cols": [6], "lang": "CWL", "io": "h5parm, ms, fits", "drift": "knot. concern: imaging belongs to image (ext.wsclean)", "note": ""}, {"id": "linc.target.selfcal_lba", "cols": [6], "lang": "CWL", "io": "h5parm, ms, fits, skymodel", "drift": "knot. concern: TEC, amplitude, subtract, mask, and images. Overlaps LiLF", "note": ""}, {"id": "linc.target.finalize", "cols": [5, 7], "lang": "CWL", "io": "ms, h5parm, fits, plot", "drift": "knot. concern: plots and the summary are inspect. state: those products are written inside the reduction, not as a later read", "note": ""}, {"id": "linc.glue.h5parm_collect", "cols": [4, 5, 6], "lang": "CWL \u2192 Python", "io": "h5parm", "drift": "layer. concern: the merge is LoSoTo's script, wrapped as a workflow step. contract: LINC calls it by bare name", "note": ""}, {"id": "linc.data.skymodels", "cols": [3, 4], "lang": "data", "io": "skymodel", "drift": "layer. concern: sky lists ship in the scheduling tree. state: steps resolve them through LINC_DATA_ROOT", "note": ""}, {"id": "linc.data.rfistrategy", "cols": [3], "lang": "Lua \u2192 data", "io": "lua", "drift": "language. concern: flagger strategies ship in the scheduling tree. state: same LINC_DATA_ROOT lookup", "note": ""}, {"id": "linc.data.calibrator_solution", "cols": [4], "lang": "data", "io": "h5parm", "drift": "layer. concern: an h5parm is vendored in the workflow. state: the transfer step has that path as a default", "note": ""}], "seam": false}, {"key": "facetselfcal", "name": "facetselfcal", "band": "Application", "kind": "perform", "blurb": "One Python file calls DP3, WSClean, LoSoTo, and taql.", "lang": "python", "also": [], "segments": [{"start": 3, "modes": ["solid", "solid", "solid", "solid", "solid"]}], "parts": [{"id": "facetselfcal.cli", "cols": [3, 6, 7], "lang": "Python \u2192 CWL", "io": "ms, fits, h5parm, parset", "drift": "language: the cycle is a Python driver, not a workflow document. knot: prepare, flag, image, find, solve, merge, and archive are one file. state: shell=True, copies into the working directory, and full_config.txt", "note": ""}, {"id": "facetselfcal.prep", "cols": [3], "lang": "Python \u2192 CWL", "io": "ms, parset", "drift": "knot: taql edits, DP3 average and phase-up, and telescope-specific fixes. state: Dysco is switched off for stacking and for CASA setjy", "note": ""}, {"id": "facetselfcal.flag", "cols": [3], "lang": "Python \u2192 CWL", "io": "ms, lua", "drift": "state: a strategy name is resolved inside the package and copied to tmp. in the working directory", "note": ""}, {"id": "facetselfcal.image", "cols": [7], "lang": "Python \u2192 CWL", "io": "ms, fits, h5parm", "drift": "contract: facet solutions are applied by name (amplitude000,phase000) inside the WSClean command line", "note": ""}, {"id": "facetselfcal.sources", "cols": [7], "lang": "Python", "io": "fits, skymodel", "drift": "concern: PyBDSF finds the sources. The direction file is input to the next solve", "note": ""}, {"id": "facetselfcal.solve", "cols": [6], "lang": "Python \u2192 CWL", "io": "ms, parset, h5parm", "drift": "contract: the DP3 parset is a string built in the driver. The direction file names the solution type per cycle", "note": ""}, {"id": "facetselfcal.h5", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm", "drift": "state: input h5parms are copied into the working directory. PyTables opens them in append mode beside losoto.h5parm. contract: soltab names such as phase000 are rewritten here", "note": ""}, {"id": "facetselfcal.beam", "cols": [6], "lang": "Python", "io": "ms, h5parm", "drift": "copy: stationresponse is the default and everybeam is the other implementation. The default import is lofar.stationresponse, which is not in this tree", "note": ""}, {"id": "facetselfcal.sky", "cols": [5], "lang": "Python", "io": "ms, skymodel, fits", "drift": "concern: GSM download, BBS models, and MeerKAT WSClean text are three writers of a sky model", "note": ""}, {"id": "facetselfcal.archive", "cols": [], "lang": "Python \u2192 CWL", "io": "ms, fits, h5parm, directory", "drift": "boundary: the tarball is a site product packed inside the science run", "note": "Tarball of a run. Not the Long Term Archive."}], "seam": false}, {"key": "losoto", "name": "LoSoTo", "band": "Application", "kind": "perform", "blurb": "Edits the h5parm written in the calibration stages.", "lang": "python", "also": [], "segments": [{"start": 4, "modes": ["solid", "solid", "solid"]}], "parts": [{"id": "losoto.h5parm", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm", "drift": "contract: the layout is the library, not a versioned schema beside it", "note": ""}, {"id": "losoto.cli", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "state: the command opens the input h5parm read-write and mutates it. The parset does not name an output path", "note": ""}, {"id": "losoto.fit.clocktec", "cols": [4, 5], "lang": "Python", "io": "in-process", "drift": "boundary: optional imports of lofar.expion and casacore.tables, outside the declared stack", "note": ""}, {"id": "losoto.op.abs", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.clip", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.clocktec", "cols": [4, 5], "lang": "Python", "io": "h5parm, parset", "drift": "contract: default soltabs clock000, tec000, phase_offset000, tec3rd000. LINC already uses the clock and TEC names", "note": ""}, {"id": "losoto.op.deleteaxis", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.polalign", "cols": [4], "lang": "Python", "io": "h5parm, parset", "drift": "contract: default output soltab phasediff", "note": ""}, {"id": "losoto.op.duplicate", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.faraday", "cols": [5], "lang": "Python", "io": "h5parm, parset", "drift": "contract. concern: default rotationmeasure000, while LINC's spinifex step writes rotation000", "note": ""}, {"id": "losoto.op.flag", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.flagextend", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.flagstation", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.interpolate", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.interpolatedirections", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.lofarbeam", "cols": [5, 6], "lang": "Python", "io": "ms, h5parm, parset", "drift": "layer. knot. concern: EveryBeam and a Measurement Set are required to fill a soltab. EveryBeam is not a declared dependency", "note": ""}, {"id": "losoto.op.norm", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.plot", "cols": [], "lang": "Python", "io": "h5parm, plot, parset", "drift": "concern. state: figures are written from the solutions parset, beside the h5parm, with no named output contract", "note": "Reads an h5parm and writes a figure. Judges a calibration box."}, {"id": "losoto.op.replicateonaxis", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.reference", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.reset", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.residuals", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.reweight", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.smooth", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.op.structure", "cols": [], "lang": "Python", "io": "h5parm, parset", "drift": "concern: a diagnostic lives in the solutions package", "note": "Reads an h5parm. Judges a calibration box."}, {"id": "losoto.op.tec", "cols": [5], "lang": "Python", "io": "h5parm, parset", "drift": "", "note": ""}, {"id": "losoto.bin.collector", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm", "drift": "", "note": ""}, {"id": "losoto.bin.split", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm", "drift": "", "note": ""}, {"id": "losoto.bin.copy", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm", "drift": "", "note": ""}, {"id": "losoto.bin.interpolator", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm", "drift": "", "note": ""}, {"id": "losoto.bin.to_parmdb", "cols": [4, 5, 6], "lang": "Python", "io": "h5parm, directory", "drift": "boundary. concern: writes parmdb, a second solutions format, through undeclared lofar.parmdb", "note": ""}, {"id": "losoto.bin.from_parmdb", "cols": [4, 5, 6], "lang": "Python", "io": "directory, h5parm", "drift": "boundary. concern: reads parmdb and globaldb. Not the losoto command", "note": ""}, {"id": "losoto.bin.from_killms", "cols": [4, 5, 6], "lang": "Python", "io": "directory, h5parm", "drift": "boundary. concern: reads a killMS pickle. killMS is not a dependency and is not cloned here", "note": ""}, {"id": "losoto.tools.parmdb_collector", "cols": [], "lang": "Python", "io": "parset, directory", "drift": "boundary. concern: not installed. It is the only importer of declared lofar-parameterset", "note": "Not installed. Not on this flow."}, {"id": "losoto.tools.benchmark", "cols": [], "lang": "Python", "io": "h5parm, directory", "drift": "boundary: not installed. Times h5parm against lofar.parmdb", "note": "Not installed. Not on this flow."}], "seam": false}, {"key": "lsmtool", "name": "LSMTool", "band": "Application", "kind": "perform", "blurb": "Sky model for direction-independent calibration and for the image.", "lang": "python", "also": ["cpp"], "segments": [{"start": 5, "modes": ["solid", "solid", "solid"]}], "parts": [{"id": "lsmtool.skymodel", "cols": [5, 7], "lang": "Python", "io": "skymodel, ms", "drift": "state: a survey name in place of a path runs a cone search inside the constructor. concern: beamMS adds attenuated fluxes in the same object", "note": ""}, {"id": "lsmtool.tableio", "cols": [5, 7], "lang": "Python", "io": "skymodel", "drift": "contract: makesourcedb is the suite edge. ds9, kvis, FITS, and VOTable are further writers in the same module", "note": ""}, {"id": "lsmtool.cli", "cols": [5, 7], "lang": "Python", "io": "skymodel, parset, ms", "drift": "", "note": ""}, {"id": "lsmtool.download", "cols": [5], "lang": "Python", "io": "skymodel", "drift": "", "note": ""}, {"id": "lsmtool.beam", "cols": [5], "lang": "Python", "io": "ms, skymodel", "drift": "concern: flux attenuation is EveryBeam plus casacore, stored as a column on the sky model", "note": ""}, {"id": "lsmtool.facet", "cols": [6, 7], "lang": "Python", "io": "skymodel", "drift": "concern: the product is a facet tessellation and a ds9 region, built from patches", "note": ""}, {"id": "lsmtool.filter", "cols": [7], "lang": "Python", "io": "fits, skymodel, ms", "drift": "knot. concern: source finding on a FITS image and a beam-corrected sky model are one function", "note": ""}, {"id": "lsmtool.grouper", "cols": [5], "lang": "C++ \u2192 Python", "io": "command", "drift": "copy. language: a second mean-shift grouper. The build flag defaults to off, and the results differ slightly from the Python grouper", "note": ""}, {"id": "lsmtool.bin.gaussian", "cols": [5], "lang": "Python", "io": "skymodel", "drift": "", "note": ""}, {"id": "lsmtool.bin.oskar", "cols": [5], "lang": "Python", "io": "skymodel", "drift": "contract: OSKAR CSV is a second input dialect. The output is makesourcedb", "note": ""}, {"id": "lsmtool.op.select", "cols": [5], "lang": "Python", "io": "skymodel, parset", "drift": "", "note": ""}, {"id": "lsmtool.op.remove", "cols": [5], "lang": "Python", "io": "skymodel, parset", "drift": "", "note": ""}, {"id": "lsmtool.op.group", "cols": [5], "lang": "Python", "io": "skymodel, parset", "drift": "", "note": ""}, {"id": "lsmtool.op.ungroup", "cols": [5], "lang": "Python", "io": "skymodel, parset", "drift": "", "note": ""}, {"id": "lsmtool.op.concatenate", "cols": [5], "lang": "Python", "io": "skymodel, parset", "drift": "", "note": ""}, {"id": "lsmtool.op.add", "cols": [5], "lang": "Python", "io": "skymodel, parset", "drift": "", "note": ""}, {"id": "lsmtool.op.merge", "cols": [5], "lang": "Python", "io": "skymodel, parset", "drift": "", "note": ""}, {"id": "lsmtool.op.move", "cols": [5], "lang": "Python", "io": "skymodel, parset", "drift": "", "note": ""}, {"id": "lsmtool.op.setpatchpositions", "cols": [5], "lang": "Python", "io": "skymodel, parset", "drift": "", "note": ""}, {"id": "lsmtool.op.transfer", "cols": [5], "lang": "Python", "io": "skymodel, parset", "drift": "", "note": ""}, {"id": "lsmtool.op.compare", "cols": [5], "lang": "Python", "io": "skymodel, log, parset", "drift": "concern: the stats file is an inspection product", "note": ""}, {"id": "lsmtool.op.plot", "cols": [5], "lang": "Python", "io": "skymodel, plot, parset", "drift": "concern. state: an empty OutFile leaves the figure without a path", "note": ""}], "seam": false}, {"key": "aoflagger-py", "name": "AOFlagger Python", "band": "Wrapper", "kind": "wrapper", "blurb": "Python interface to the AOFlagger library.", "lang": "python", "also": [], "segments": [{"start": 3, "modes": ["solid"]}], "parts": [{"id": "aoflagger.python", "cols": [3], "lang": "Python", "io": "ms", "drift": "", "note": ""}], "seam": false}, {"key": "everybeam-py", "name": "EveryBeam Python", "band": "Wrapper", "kind": "wrapper", "blurb": "Python interface to the EveryBeam library.", "lang": "python", "also": [], "segments": [{"start": 5, "modes": ["solid"]}], "parts": [{"id": "everybeam.python", "cols": [5], "lang": "Python", "io": "ms", "drift": "", "note": ""}], "seam": false}, {"key": "casacore-py", "name": "casacore Python", "band": "Wrapper", "kind": "wrapper", "blurb": "Python interface to the Measurement Set. python-casacore is the separate project.", "lang": "python", "also": [], "segments": [{"start": 3, "modes": ["solid", "solid", "solid", "solid", "solid"]}], "parts": [{"id": "casacore.python", "cols": [3, 4, 5, 6, 7], "lang": "Python", "io": "ms", "drift": "copy: python-casacore is a separate project from these in-tree bindings. RMextract imports the older name pyrap.tables", "note": ""}], "seam": true}, {"key": "dp3", "name": "DP3", "band": "Engine", "kind": "perform", "blurb": "One binary flags, calibrates, and can still image.", "lang": "cpp", "also": [], "segments": [{"start": 3, "modes": ["solid", "solid", "solid", "solid", "solid"]}], "parts": [{"id": "dp3.cli", "cols": [3, 4, 5, 6], "lang": "C++", "io": "parset, ms, h5parm", "drift": "knot: one binary runs flag, average, demix, apply, predict, solve, and optional imaging. state: with no arguments the process loads DP3.parset, DPPP.parset, or NDPPP.parset from the working directory. pause_before_start reads stdin", "note": ""}, {"id": "dp3.input", "cols": [3], "lang": "C++", "io": "ms", "drift": "", "note": ""}, {"id": "dp3.output", "cols": [3], "lang": "C++", "io": "ms", "drift": "state: an msout path equal to msin updates the input Measurement Set in place. contract: storagemanager=dysco names a plugin DP3 does not link", "note": ""}, {"id": "dp3.flag", "cols": [3], "lang": "C++", "io": "ms, lua", "drift": "knot: five flaggers. The aoflagger step is the one that calls ext.aoflagger", "note": ""}, {"id": "dp3.average", "cols": [3], "lang": "C++", "io": "ms", "drift": "", "note": ""}, {"id": "dp3.demix", "cols": [3], "lang": "C++", "io": "ms, skymodel", "drift": "concern: the sources it subtracts are a sky model", "note": ""}, {"id": "dp3.applycal", "cols": [4, 5, 6], "lang": "C++", "io": "ms, h5parm, directory", "drift": "concern: it parses h5parm and ParmDB. The multiply into the visibilities is this engine", "note": ""}, {"id": "dp3.applybeam", "cols": [5], "lang": "C++", "io": "ms", "drift": "concern: the beam is EveryBeam. This step applies the result", "note": ""}, {"id": "dp3.predict", "cols": [5, 7], "lang": "C++", "io": "skymodel, h5parm, ms", "drift": "knot. concern: predict, IDG predict, Sagecal predict, and h5parm predict are separate engines behind one step list. Which of them exist depends on the build", "note": ""}, {"id": "dp3.solve", "cols": [4, 6], "lang": "C++", "io": "ms, skymodel, h5parm", "drift": "concern: ddecal writes the h5parm. The file layout is the solutions contract", "note": ""}, {"id": "dp3.image", "cols": [7], "lang": "C++", "io": "ms, fits", "drift": "concern: imaging is not the streaming engine. The image step is absent unless WSClean was found at build time", "note": ""}, {"id": "dp3.sky", "cols": [3, 5], "lang": "C++", "io": "skymodel", "drift": "concern: a sky-model reader lives in the visibility engine", "note": ""}, {"id": "dp3.parmdb", "cols": [4, 5], "lang": "C++", "io": "directory", "drift": "concern: ParmDB is a second solution format beside h5parm", "note": ""}, {"id": "dp3.python", "cols": [3, 4, 5, 6], "lang": "C++ \u2192 Python", "io": "ms", "drift": "language. concern: a user Python class becomes a step in the C++ chain", "note": ""}], "seam": false}, {"key": "wsclean", "name": "WSClean", "band": "Engine", "kind": "perform", "blurb": "Images the sky. chgcentre rewrites the phase centre. The beam term sits in its own stage.", "lang": "cpp", "also": [], "segments": [{"start": 3, "modes": ["solid"]}, {"start": 5, "modes": ["solid"]}, {"start": 7, "modes": ["solid"]}], "parts": [{"id": "wsclean.cli", "cols": [7], "lang": "C++", "io": "ms, fits", "drift": "state: startup rejects a multithreaded OpenBLAS, the same check DP3 runs", "note": ""}, {"id": "wsclean.wgridder", "cols": [7], "lang": "C++", "io": "ms, fits", "drift": "", "note": ""}, {"id": "wsclean.idg", "cols": [7], "lang": "C++", "io": "ms, fits", "drift": "contract: the IDG gridder is in the binary only when IDG 0.8.x with x >= 1 was found. DP3 accepts IDG >= 0.8", "note": ""}, {"id": "wsclean.beam", "cols": [5, 7], "lang": "C++", "io": "ms, fits", "drift": "concern: the beam is EveryBeam. This WSClean accepts EveryBeam 0.7.x with x >= 4, or 0.8. DP3 requires EveryBeam >= 0.8.3 and \u003c 0.9", "note": ""}, {"id": "wsclean.chgcentre", "cols": [3], "lang": "C++", "io": "ms", "drift": "concern: changing the phase centre rewrites the Measurement Set. It does not write an image", "note": ""}, {"id": "wsclean.distributed", "cols": [7], "lang": "C++", "io": "ms, fits", "drift": "copy: wsclean-mp is the same imager under MPI, built only when MPI is found", "note": ""}], "seam": false}, {"key": "sagecal", "name": "Sagecal", "band": "Engine", "kind": "perform", "blurb": "A solver in C. restore also writes a model into an image.", "lang": "c", "also": [], "segments": [{"start": 5, "modes": ["solid", "solid", "solid"]}], "parts": [{"id": "sagecal.lib", "cols": [5, 6], "lang": "C", "io": "ms, skymodel", "drift": "contract: this tree is 0.8.9. The DP3 build that links it accepts 0.8.4 up to, and not including, 0.8.6", "note": ""}, {"id": "sagecal.cli", "cols": [5, 6], "lang": "C", "io": "ms, skymodel, directory", "drift": "knot: solve, simulate, bandpass, and RFI mitigation are one binary. contract: the sky model and the solution file are Sagecal's own text. state: a shapelet model file is resolved from the working directory", "note": ""}, {"id": "sagecal.mpi", "cols": [5, 6], "lang": "C", "io": "ms, skymodel, directory", "drift": "copy: the same calibration as sagecal, with a master, workers, and ADMM. Built only when MPI is found and LIB_ONLY is off", "note": ""}, {"id": "sagecal.buildsky", "cols": [5], "lang": "C", "io": "fits, skymodel", "drift": "concern: source finding on an image is not the solver. contract: the written sky model uses the west-from-north position angle", "note": ""}, {"id": "sagecal.restore", "cols": [7], "lang": "C", "io": "fits, skymodel", "drift": "concern: writing a model into an image is the imager's product. Built only when WCSLIB and FFTW are found", "note": ""}, {"id": "sagecal.uvwriter", "cols": [], "lang": "C", "io": "ms, skymodel", "drift": "boundary: lunar-frame visibilities through the SPICE toolkit. Built only when CSPICE is found", "note": "Lunar-frame visibilities. Not this flow."}], "seam": false}, {"key": "aoflagger", "name": "AOFlagger", "band": "Engine", "kind": "perform", "blurb": "Flags the Measurement Set.", "lang": "cpp", "also": ["python", "lua"], "segments": [{"start": 3, "modes": ["solid"]}], "parts": [{"id": "aoflagger.lib", "cols": [3], "lang": "C++", "io": "ms, lua", "drift": "", "note": ""}, {"id": "aoflagger.cli", "cols": [3], "lang": "C++", "io": "ms, lua", "drift": "", "note": ""}, {"id": "aoflagger.gui", "cols": [3], "lang": "C++", "io": "ms, plot", "drift": "concern: rfigui and aoqplot inspect a Measurement Set. They are built only when ENABLE_GUI is on and GTKMM is found", "note": ""}, {"id": "aoflagger.quality", "cols": [3], "lang": "C++", "io": "ms, log", "drift": "concern: aoquality writes a summary, not flags", "note": ""}, {"id": "aoflagger.strategies", "cols": [3], "lang": "Lua \u2192 data", "io": "lua", "drift": "layer. copy: this tree ships lofar-default.lua. LINC ships lofar-hba-wideband.lua and lofar-lba-wideband.lua and passes those into DP3", "note": ""}, {"id": "aoflagger.python", "cols": [3], "lang": "Python", "io": "ms", "drift": "", "note": ""}], "seam": false}, {"key": "everybeam", "name": "EveryBeam", "band": "Library", "kind": "perform", "blurb": "Jones matrix for the station beam. A-terms are an image-plane kernel in this library.", "lang": "cpp", "also": ["python"], "segments": [{"start": 5, "modes": ["solid"]}, {"start": 7, "modes": ["solid"]}], "parts": [{"id": "everybeam.load", "cols": [5], "lang": "C++", "io": "ms", "drift": "state: a Measurement Set whose TELESCOPE_NAME is CARMA is treated as DSA-110", "note": ""}, {"id": "everybeam.element", "cols": [5], "lang": "C++", "io": "directory", "drift": "state: LOBES falls back to Hamaker when a station coefficient file is missing, and further warnings are suppressed", "note": ""}, {"id": "everybeam.telescope", "cols": [5], "lang": "C++", "io": "ms", "drift": "", "note": ""}, {"id": "everybeam.coeffs", "cols": [5], "lang": "data", "io": "directory", "drift": "layer. contract: Hamaker is shipped as .coeff and as HDF5. state: GetDataDirectory checks a compiled path, then EVERYBEAM_DATADIR, then CONDA_PREFIX, then VIRTUAL_ENV", "note": ""}, {"id": "everybeam.python", "cols": [5], "lang": "Python", "io": "ms", "drift": "", "note": ""}, {"id": "everybeam.aterms", "cols": [7], "lang": "C++", "io": "ms, fits", "drift": "layer. concern: an image-plane kernel and a FITS screen reader live in the beam library", "note": ""}], "seam": false}, {"key": "idg", "name": "IDG", "band": "Library", "kind": "perform", "blurb": "Grids visibilities. CPU and, when built, CUDA are the same gridder. idg-cal also solves.", "lang": "cpp", "also": [], "segments": [{"start": 6, "modes": ["solid", "solid"]}], "parts": [{"id": "idg.cpu", "cols": [7], "lang": "C++", "io": "ms, fits", "drift": "", "note": ""}, {"id": "idg.cuda", "cols": [7], "lang": "C++", "io": "ms, fits", "drift": "copy: a second kernel of the same gridder. BUILD_LIB_CUDA defaults to off. When both CPU and CUDA are on, the build also exports idg-hybrid-cuda", "note": ""}, {"id": "idg.api", "cols": [7], "lang": "C++", "io": "ms, fits", "drift": "", "note": ""}, {"id": "idg.cal", "cols": [6], "lang": "C++", "io": "ms", "drift": "layer. concern: idg-cal solves, beside the gridder", "note": ""}, {"id": "idg.bin", "cols": [7], "lang": "C++", "io": "ms, fits", "drift": "boundary: examples, and a Python binding that is off unless BUILD_WITH_PYTHON is set. MPI is off unless BUILD_WITH_MPI is set", "note": ""}], "seam": false}, {"key": "dysco", "name": "Dysco", "band": "Library", "kind": "perform", "blurb": "Compresses the Measurement Set.", "lang": "cpp", "also": [], "segments": [{"start": 3, "modes": ["solid"]}], "parts": [{"id": "dysco.library", "cols": [3], "lang": "C++", "io": "ms", "drift": "copy: casacore vendors the same storage manager and builds it by default. state: the .so is found through the dynamic linker, as with LofarStMan", "note": ""}, {"id": "dysco.compress", "cols": [3], "lang": "C++", "io": "ms", "drift": "", "note": ""}, {"id": "dysco.decompress", "cols": [3], "lang": "C++", "io": "ms", "drift": "", "note": ""}], "seam": false}, {"key": "lofarstman", "name": "LofarStMan", "band": "Library", "kind": "perform", "blurb": "Reads the correlator Measurement Set.", "lang": "cpp", "also": [], "segments": [{"start": 3, "modes": ["solid"]}], "parts": [{"id": "lofarstman.library", "cols": [3], "lang": "C++", "io": "ms", "drift": "", "note": ""}, {"id": "lofarstman.register", "cols": [3], "lang": "C++", "io": "command", "drift": "state: the table stores the type name LofarStMan. The .so is found through the dynamic linker, which the README tells the user to set with LD_LIBRARY_PATH", "note": ""}, {"id": "lofarstman.data", "cols": [3], "lang": "C++", "io": "ms", "drift": "", "note": ""}, {"id": "lofarstman.weights", "cols": [3], "lang": "C++", "io": "ms", "drift": "", "note": ""}, {"id": "lofarstman.meta", "cols": [3], "lang": "C++", "io": "ms", "drift": "", "note": ""}, {"id": "lofarstman.uvw", "cols": [3], "lang": "C++", "io": "ms", "drift": "contract: UVW is not in the raw file. UvwColumn computes it from antenna positions and the phase direction when that calculation is possible", "note": ""}, {"id": "lofarstman.constants", "cols": [3], "lang": "C++", "io": "ms", "drift": "contract: FLAG_ROW is always false, and any other scalar column is always zero. Those values are not in the data file", "note": ""}], "seam": false}, {"key": "casacore", "name": "casacore", "band": "Library", "kind": "floor", "blurb": "The table system under every stage. This tree also builds Dysco and image classes.", "lang": "cpp", "also": ["python"], "segments": [{"start": 3, "modes": ["solid", "pale", "pale", "pale", "solid"]}], "parts": [{"id": "casacore.tables", "cols": [], "lang": "C++", "io": "directory", "drift": "", "note": "Under every box. The table system."}, {"id": "casacore.ms", "cols": [], "lang": "C++", "io": "ms", "drift": "", "note": "Under every box. The Measurement Set."}, {"id": "casacore.measures", "cols": [], "lang": "C++", "io": "directory", "drift": "state: if DATA_DIR has no ephemerides/ at build time, the path is supplied at run time. LINC's image downloads WSRT_Measures into the prefix", "note": "Data and library for directions and times. Not a box."}, {"id": "casacore.images", "cols": [7], "lang": "C++", "io": "fits", "drift": "concern: images and FITS sit in the same suite as the Measurement Set. WCSLIB 5.14 crashes casacore tests", "note": ""}, {"id": "casacore.dysco", "cols": [3], "lang": "C++", "io": "ms", "drift": "copy: this is the Dysco storage manager, built into casacore by default", "note": ""}, {"id": "casacore.sisco", "cols": [3], "lang": "C++", "io": "ms", "drift": "copy: a second compression storage manager, also on by default", "note": ""}, {"id": "casacore.python", "cols": [], "lang": "Python", "io": "ms", "drift": "copy: python-casacore is a separate project from these in-tree bindings. RMextract imports the older name pyrap.tables", "note": "One binding over the Measurement Set. Not a box."}], "seam": false}], "cols": ["instrument", "COBALT", "LTA", "pre-processing", "instrumental calibration", "direction-independent calibration", "direction-dependent calibration", "science images"], "door": 3, "userBands": ["Interface", "Workflow", "Application", "Wrapper"]};
+const COLORS = {"cpp": "#f34b7d", "c": "#c5c9d1", "python": "#3572A5", "cwl": "#cb171e", "shell": "#89e051", "lua": "#7aa2ff", "data": "#6e7681"};
+const LABELS = {"cpp": "C++", "c": "C", "python": "Python", "cwl": "CWL", "shell": "shell", "lua": "Lua", "data": "data"};
+function cell(tag, cls) {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  return node;
+}
+function langName(code) {
+  return LABELS[code] || code;
+}
+let picked = "";
+function shut() {
+  picked = "";
+  document.getElementById("side").classList.add("shut");
+  document.querySelectorAll("button.bar.on").forEach(node => node.classList.remove("on"));
+}
+function show(key, segIndex, colIndex) {
+  const mark = key + "|" + segIndex + "|" + colIndex;
+  if (picked === mark) { shut(); return; }
+  picked = mark;
+  document.getElementById("side").classList.remove("shut");
+  const row = DATA.rows.find(item => item.key === key);
+  const seg = row.segments[segIndex];
+  const last = seg.start + seg.modes.length - 1;
+  const names = [];
+  for (let i = seg.start; i <= last; i++) names.push(DATA.cols[i]);
+  document.querySelectorAll("button.bar").forEach(node => {
+    const on = node.dataset.key === key && node.dataset.seg === String(segIndex);
+    node.classList.toggle("on", on);
+  });
+  const lines = [
+    row.name, row.meta, "", row.blurb, "",
+    DATA.cols[colIndex],
+    "span: " + names.join(" · ")
+  ];
+  if (row.kind === "observatory") {
+    lines.push("", "Placed from the lectures. No gap matrix yet.");
+  }
+  const buckets = [[], [], []];
+  for (const part of row.parts) {
+    const hit = part.cols.indexOf(colIndex) !== -1;
+    if (!part.cols.length) buckets[2].push(part);
+    else if (hit) buckets[0].push(part);
+    else buckets[1].push(part);
+  }
+  const titles = ["This stage", "Other stages", "Beside the stages"];
+  buckets.forEach((parts, index) => {
+    if (!parts.length) return;
+    lines.push("", titles[index]);
+    for (const part of parts) {
+      const where = part.cols.map(index => DATA.cols[index]).join(", ");
+      lines.push(part.id + "  " + part.lang + (where ? "  " + where : ""));
+      if (part.note) lines.push("  " + part.note);
+      if (part.io) lines.push("  " + part.io);
+      if (part.drift) lines.push("  " + part.drift);
+    }
+  });
+  document.getElementById("detail").textContent = lines.join("\n");
+}
+function decorate(slot, row, colIndex) {
+  if (colIndex === DATA.door) slot.classList.add("door");
+  if (DATA.userBands.indexOf(row.band) !== -1 && colIndex >= DATA.door) {
+    slot.classList.add("user");
+  }
+}
+function draw() {
+  const table = document.getElementById("grid");
+  table.replaceChildren();
+  const head = document.createElement("thead");
+  const hem = document.createElement("tr");
+  hem.className = "hem";
+  hem.append(cell("th", "band"), cell("th", "name"));
+  const left = cell("th", "");
+  left.colSpan = DATA.door;
+  left.textContent = "observatory";
+  const right = cell("th", "astro");
+  right.colSpan = DATA.cols.length - DATA.door;
+  right.textContent = "astronomer";
+  hem.append(left, right);
+  const headRow = document.createElement("tr");
+  headRow.className = "names";
+  headRow.append(cell("th", "band"), cell("th", "name"));
+  DATA.cols.forEach((name, index) => {
+    const th = cell("th", index === DATA.door ? "door" : "");
+    th.textContent = name;
+    headRow.append(th);
+  });
+  head.append(hem, headRow);
+  table.append(head);
+  const body = document.createElement("tbody");
+  let band = "";
+  let bandCell = null;
+  for (const row of DATA.rows) {
+    const tr = document.createElement("tr");
+    if (row.seam) tr.classList.add("seam");
+    if (row.band !== band) {
+      band = row.band;
+      bandCell = cell("th", "band");
+      bandCell.textContent = band;
+      bandCell.rowSpan = DATA.rows.filter(item => item.band === band).length;
+      tr.append(bandCell);
+    }
+    const name = cell("th", "name");
+    const prog = cell("span", "prog");
+    prog.textContent = row.name;
+    const meta = cell("span", "meta");
+    const langs = row.lang ? [langName(row.lang)].concat(row.also.map(langName)) : [];
+    if (row.kind === "observatory") row.meta = "observatory";
+    else if (row.kind === "wrapper") row.meta = "wrapper · " + langs.join(" · ");
+    else if (row.kind === "interface") row.meta = "interface · " + langs.join(" · ");
+    else if (row.kind === "run") row.meta = "runs · " + langs.join(" · ");
+    else if (row.kind === "ship") row.meta = "builds · " + langs.join(" · ");
+    else row.meta = langs.join(" · ");
+    meta.textContent = row.meta;
+    name.append(prog, meta);
+    tr.append(name);
+    let cursor = 0;
+    row.segments.forEach((seg, segIndex) => {
+      while (cursor < seg.start) {
+        const empty = cell("td", "slot");
+        decorate(empty, row, cursor);
+        tr.append(empty);
+        cursor += 1;
+      }
+      seg.modes.forEach((mode, offset) => {
+        const slot = cell("td", "slot");
+        decorate(slot, row, cursor);
+        if (offset === 0) slot.classList.add("start");
+        if (offset === seg.modes.length - 1) slot.classList.add("end");
+        const bar = cell("button", "bar " + mode);
+        bar.type = "button";
+        if (mode !== "obs") bar.style.setProperty("--c", COLORS[row.lang]);
+        bar.dataset.key = row.key;
+        bar.dataset.seg = String(segIndex);
+        const from = DATA.cols[seg.start];
+        const to = DATA.cols[seg.start + seg.modes.length - 1];
+        bar.setAttribute("aria-label", row.name + ", " + (from === to ? from : from + " through " + to));
+        bar.addEventListener("click", () => show(row.key, segIndex, seg.start + offset));
+        slot.append(bar);
+        tr.append(slot);
+        cursor += 1;
+      });
+    });
+    while (cursor < DATA.cols.length) {
+      const empty = cell("td", "slot");
+      decorate(empty, row, cursor);
+      tr.append(empty);
+      cursor += 1;
+    }
+    body.append(tr);
+  }
+  table.append(body);
+}
+document.getElementById("shut").addEventListener("click", shut);
+draw();
+</script>
+</body>
+</html>

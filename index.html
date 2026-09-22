@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Relation map</title>
+<link rel="stylesheet" href="watermark.css">
 <style>
   :root {
     --bg:#0e1117; --panel:#161b22; --border:#30363d; --text:#e6edf3;
@@ -51,8 +52,13 @@
 </style>
 </head>
 <body>
+<div class="mark" aria-hidden="true"></div>
 <header>
   <h1>Relation map</h1>
+  <nav class="modes" aria-label="Mode">
+    <a href="stack.html">stack</a>
+    <a href="index.html" class="on">graph</a>
+  </nav>
   <a href="gaps.html">layers × concerns</a>
   <label class="meta">level
     <select id="level">

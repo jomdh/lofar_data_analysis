@@ -4,7 +4,12 @@ Directed graph of the Terpkit block notes. An arrow means **depends on**. The te
 
 **Open:** https://jomdh.github.io/lofar_data_analysis/
 
-Three stops:
+The header switches two views.
+
+- **Graph** is this page. An arrow means depends on.
+- **Stack** is [stack.html](https://jomdh.github.io/lofar_data_analysis/stack.html). One bar per program across the stages.
+
+Three stops on the graph:
 
 - **Project.** One node per tool. `wsclean` and `ext.wsclean` are the same node, and the `ext.` prefix is dropped. A library that has no graph of its own stays a gold node, named without that prefix.
 - **Group.** `linc.calibrator.pa` folds to `linc.calibrator`. External nodes stay put.
